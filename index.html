@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoRecycle - App de Reciclaje con IA</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app" class="max-w-md mx-auto bg-gray-50 min-h-screen">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 shadow-lg">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold">EcoRecycle</h1>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-trophy"></i>
+                    <span id="user-points" class="font-semibold">425</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Notifications -->
+        <div id="notifications" class="hidden bg-green-100 border-l-4 border-green-500 p-3 m-4 rounded">
+            <p id="notification-message" class="text-green-700 text-sm font-medium"></p>
+        </div>
+
+        <!-- Main Content -->
+        <main class="p-4 pb-20">
+            <!-- Scanner Tab -->
+            <div id="scanner-tab" class="tab-content space-y-6">
+                <!-- EcoBot Character -->
+                <div class="flex flex-col items-center mb-4">
+                    <div class="relative">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg eco-bounce">
+                            <i class="fas fa-leaf text-white text-2xl"></i>
+                        </div>
+                        <div class="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                            <span class="text-xs">😊</span>
+                        </div>
+                    </div>
+                    <div class="mt-2 bg-white rounded-lg p-2 shadow-md max-w-xs">
+                        <p class="text-sm text-gray-700 text-center">¡Hola! Soy EcoBot 🌱 ¿Qué quieres reciclar hoy?</p>
+                    </div>
+                </div>
+                
+                <!-- Scanner Section -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-camera mr-2 text-green-500"></i>
+                        Escáner Inteligente
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div id="scanner-area" class="bg-gray-100 rounded-lg p-4 h-48 flex items-center justify-center relative overflow-hidden">
+                            <div id="scan-placeholder" class="text-center">
+                                <i class="fas fa-camera text-gray-400 text-6xl mb-2"></i>
+                                <p class="text-gray-600">Toca para escanear un objeto</p>
+                            </div>
+                            <video id="camera-stream" class="hidden absolute top-0 left-0 w-full h-full object-cover"></video>
+                            <canvas id="camera-canvas" class="hidden"></canvas>
+                            <div id="scanning-animation" class="hidden text-center">
+                                <div class="spinner mx-auto mb-2"></div>
+                                <p class="text-gray-600">Analizando con IA...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
+                            <button id="scan-btn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                                <i class="fas fa-camera mr-2"></i>
+                                Escanear
+                            </button>
+                            <button id="capture-btn" class="hidden flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                                <i class="fas fa-dot-circle mr-2"></i>
+                                Capturar
+                            </button>
+                            <button id="voice-btn" class="px-4 py-3 rounded-lg transition-colors bg-blue-500 hover:bg-blue-600 text-white">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scan Result -->
+                <div id="scan-result" class="hidden bg-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center mb-4">
+                        <div id="result-bin-color" class="w-8 h-8 rounded-full mr-3"></div>
+                        <h3 id="result-item" class="text-lg font-semibold text-gray-800"></h3>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <span class="font-medium text-gray-700 mr-2">Caneca:</span>
+                            <span id="result-bin" class="font-semibold text-green-600"></span>
+                        </div>
+                        
+                        <p id="result-instructions" class="text-gray-600 text-sm"></p>
+                        
+                        <div id="result-points" class="hidden flex items-center text-green-600">
+                            <i class="fas fa-check-circle mr-1"></i>
+                            <span class="text-sm font-medium">+<span id="points-earned">0</span> puntos EcoRecycle</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history-tab" class="tab-content space-y-6 hidden">
+                <!-- EcoBot Character -->
+                <div class="flex flex-col items-center mb-4">
+                    <div class="relative">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg eco-bounce">
+                            <i class="fas fa-leaf text-white text-2xl"></i>
+                        </div>
+                        <div class="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                            <span class="text-xs">😊</span>
+                        </div>
+                    </div>
+                    <div class="mt-2 bg-white rounded-lg p-2 shadow-md max-w-xs">
+                        <p class="text-sm text-gray-700 text-center">¡Aquí está tu historial de reciclaje personal! 📊</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-clock mr-2 text-blue-500"></i>
+                        Mi Historial de Reciclaje
+                    </h2>
+
+                    <div id="history-list" class="space-y-3">
+                        <div class="text-center py-8">
+                            <i class="fas fa-trash-alt text-gray-300 text-6xl mb-4"></i>
+                            <p class="text-gray-500 text-lg">¡Aún no has reciclado nada!</p>
+                            <p class="text-gray-400 text-sm">Usa el escáner para empezar</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Statistics -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Mis Estadísticas</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div id="total-recycled" class="text-3xl font-bold text-green-600">0</div>
+                            <div class="text-sm text-gray-600">Objetos reciclados</div>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div id="total-points-earned" class="text-3xl font-bold text-blue-600">0</div>
+                            <div class="text-sm text-gray-600">Puntos ganados</div>
+                        </div>
+                        <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                            <div id="co2-avoided" class="text-3xl font-bold text-yellow-600">0.0kg</div>
+                            <div class="text-sm text-gray-600">CO₂ evitado</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div id="average-points" class="text-3xl font-bold text-purple-600">0</div>
+                            <div class="text-sm text-gray-600">Puntos promedio</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rewards Tab -->
+            <div id="rewards-tab" class="tab-content space-y-6 hidden">
+                <!-- EcoBot Character -->
+                <div class="flex flex-col items-center mb-4">
+                    <div class="relative">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg eco-bounce">
+                            <i class="fas fa-leaf text-white text-2xl"></i>
+                        </div>
+                        <div class="absolute -top-1 -right-1 w-6 h-6 bg-orange-400 rounded-full flex items-center justify-center">
+                            <span class="text-xs">🎉</span>
+                        </div>
+                    </div>
+                    <div class="mt-2 bg-white rounded-lg p-2 shadow-md max-w-xs">
+                        <p class="text-sm text-gray-700 text-center">¡Tienes muchos puntos! Mira lo que puedes canjear 🎁</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-star mr-2 text-yellow-500"></i>
+                            Mis Puntos
+                        </h2>
+                        <div class="bg-green-100 px-4 py-2 rounded-full">
+                            <span id="rewards-points" class="text-green-700 font-bold text-lg">425</span>
+                        </div>
+                    </div>
+                    
+                    <div id="rewards-grid" class="grid grid-cols-2 gap-4">
+                        <!-- Rewards will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Tu Impacto</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div id="impact-recycled" class="text-2xl font-bold text-green-600">24</div>
+                            <div class="text-sm text-gray-600">Objetos reciclados</div>
+                        </div>
+                        <div class="text-center">
+                            <div id="impact-co2" class="text-2xl font-bold text-blue-600">8.5kg</div>
+                            <div class="text-sm text-gray-600">CO₂ evitado</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-white shadow-lg border-t border-gray-200">
+            <div class="flex justify-around py-2">
+                <button class="nav-btn active flex flex-col items-center py-2 px-4 rounded-lg transition-colors" data-tab="scanner">
+                    <i class="fas fa-camera mb-1"></i>
+                    <span class="text-xs">Escanear</span>
+                </button>
+                <button class="nav-btn flex flex-col items-center py-2 px-4 rounded-lg transition-colors" data-tab="history">
+                    <i class="fas fa-clock mb-1"></i>
+                    <span class="text-xs">Historial</span>
+                </button>
+                <button class="nav-btn flex flex-col items-center py-2 px-4 rounded-lg transition-colors" data-tab="rewards">
+                    <i class="fas fa-trophy mb-1"></i>
+                    <span class="text-xs">Puntos</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

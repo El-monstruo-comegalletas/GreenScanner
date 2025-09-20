@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoRecycle - Iniciar Sesión</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/animations.css">
+</head>
+<body class="bg-gradient-to-br from-green-50 to-blue-50">
+    <!-- Contenedor principal -->
+    <div id="app" class="min-h-screen flex items-center justify-center p-4">
+        
+        <!-- Vista de Login -->
+        <div id="loginView" class="w-full max-w-md view-container">
+            <!-- Mascota -->
+            <div class="eco-character-container">
+                <div class="eco-character">
+                    <div class="character-body">
+                        <svg class="character-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 0c1.1 0 2 .9 2 2v14c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2z"/>
+                        </svg>
+                    </div>
+                    <div class="character-badge happy">
+                        <span>😊</span>
+                    </div>
+                </div>
+                <div class="character-message">
+                    <p>¡Bienvenido de vuelta! 🌱 Sigamos reciclando juntos</p>
+                </div>
+            </div>
+
+            <!-- Formulario de Login -->
+            <div class="auth-form">
+                <div class="form-header">
+                    <h1>Iniciar Sesión</h1>
+                    <p>Accede a tu cuenta EcoRecycle</p>
+                </div>
+
+                <form id="loginForm" class="form-fields">
+                    <div class="input-group">
+                        <div class="input-field">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                            </svg>
+                            <input 
+                                type="email" 
+                                id="loginEmail" 
+                                placeholder="Correo electrónico"
+                                required
+                            >
+                        </div>
+                        <div class="error-message" id="loginEmailError"></div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-field password-field">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            <input 
+                                type="password" 
+                                id="loginPassword" 
+                                placeholder="Contraseña"
+                                required
+                            >
+                            <button type="button" class="password-toggle" id="loginPasswordToggle">
+                                <svg class="password-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="error-message" id="loginPasswordError"></div>
+                    </div>
+
+                    <div class="forgot-password">
+                        <button type="button">¿Olvidaste tu contraseña?</button>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        Iniciar Sesión
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="form-switch">
+                    <p>¿No tienes cuenta? <button id="switchToRegister" type="button">Regístrate aquí</button></p>
+                </div>
+            </div>
+
+            <div class="form-footer">
+                <p>Al iniciar sesión, aceptas nuestros <span>Términos y Condiciones</span></p>
+            </div>
+        </div>
+
+        <!-- Vista de Registro -->
+        <div id="registerView" class="w-full max-w-md view-container" style="display: none;">
+            <!-- Mascota -->
+            <div class="eco-character-container">
+                <div class="eco-character">
+                    <div class="character-body">
+                        <svg class="character-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 0c1.1 0 2 .9 2 2v14c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2z"/>
+                        </svg>
+                    </div>
+                    <div class="character-badge welcome">
+                        <span>🌟</span>
+                    </div>
+                </div>
+                <div class="character-message">
+                    <p>¡Únete a la revolución del reciclaje! 🌍 Cada pequeña acción cuenta</p>
+                </div>
+            </div>
+
+            <!-- Formulario de Registro -->
+            <div class="auth-form">
+                <div class="form-header">
+                    <h1>Crear Cuenta</h1>
+                    <p>Únete a la comunidad EcoRecycle</p>
+                </div>
+
+                <form id="registerForm" class="form-fields">
+                    <div class="input-group">
+                        <div class="input-field">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <input 
+                                type="text" 
+                                id="registerName" 
+                                placeholder="Nombre completo"
+                                required
+                            >
+                        </div>
+                        <div class="error-message" id="registerNameError"></div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-field">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                            </svg>
+                            <input 
+                                type="email" 
+                                id="registerEmail" 
+                                placeholder="Correo electrónico"
+                                required
+                            >
+                        </div>
+                        <div class="error-message" id="registerEmailError"></div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-field password-field">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            <input 
+                                type="password" 
+                                id="registerPassword" 
+                                placeholder="Contraseña (mín. 6 caracteres)"
+                                required
+                            >
+                            <button type="button" class="password-toggle" id="registerPasswordToggle">
+                                <svg class="password-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="error-message" id="registerPasswordError"></div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-field password-field">
+                            <svg class="input-icon" xmlns="http://www.w3.svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            <input 
+                                type="password" 
+                                id="registerConfirmPassword" 
+                                placeholder="Confirmar contraseña"
+                                required
+                            >
+                            <button type="button" class="password-toggle" id="registerConfirmPasswordToggle">
+                                <svg class="password-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="error-message" id="registerConfirmPasswordError"></div>
+                    </div>
+
+                    <div class="terms-checkbox">
+                        <input type="checkbox" id="termsCheckbox" required>
+                        <label for="termsCheckbox">
+                            Acepto los <span>términos y condiciones</span> y la <span>política de privacidad</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        Crear Cuenta
+                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="form-switch">
+                    <p>¿Ya tienes cuenta? <button id="switchToLogin" type="button">Inicia sesión</button></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista de Éxito -->
+        <div id="successView" class="w-full max-w-md text-center view-container" style="display: none;">
+            <div class="auth-form">
+                <div class="success-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                
+                <h1 id="successTitle">¡Bienvenido!</h1>
+                <p id="successMessage">Has iniciado sesión correctamente. ¡Vamos a reciclar!</p>
+
+                <div class="welcome-gift">
+                    <h3>¡Obtén 50 puntos de bienvenida! 🎁</h3>
+                    <p>Empieza escaneando tu primer objeto para reciclar</p>
+                </div>
+
+                <button id="startRecycling" class="submit-btn">
+                    Comenzar a Reciclar
+                </button>
+            </div>
+
+            <!-- Mascota de éxito -->
+            <div class="eco-character-container">
+                <div class="eco-character">
+                    <div class="character-body">
+                        <svg class="character-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 0c1.1 0 2 .9 2 2v14c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2z"/>
+                        </svg>
+                    </div>
+                    <div class="character-badge celebration">
+                        <span>🎉</span>
+                    </div>
+                </div>
+                <div class="character-message">
+                    <p>¡Genial! 🎉 Ahora eres parte de nuestra comunidad eco-friendly</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="successView" class="w-full max-w-md view-container" style="display:none">
+  <div class="auth-form">
+    <div class="form-header">
+      <h1 id="successTitle">¡Listo!</h1>
+      <p id="successMessage">Has iniciado sesión.</p>
+    </div>
+    <button id="startRecycling" class="submit-btn">Ir a la app</button>
+  </div>
+</div>
+
+
+<!-- Scripts -->
+
+
+<script defer src="../js/validation.js"></script>
+<script defer src="../js/components.js"></script>
+<script type="module" src="../js/main.js"></script>
+
+</body>
+</html>
