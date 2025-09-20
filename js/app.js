@@ -14,7 +14,7 @@
 // En desarrollo (local), usa: 'http://127.0.0.1:8000'
 // En producción (desplegado), reemplázala por la URL pública de tu API.
 //const API_BASE_URL = 'http://127.0.0.1:8000'; // <-- ¡CAMBIA ESTO ANTES DE DESPLEGAR!
-const API_BASE_URL = 'https://gs.kwb.com.co/';
+const API_BASE_URL = 'https://gs.kwb.com.co';
 // === Config API (frontend) ===
 const API_BASE = API_BASE_URL;   // Usamos la misma constante para consistencia
 
