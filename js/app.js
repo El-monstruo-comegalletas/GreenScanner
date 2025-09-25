@@ -85,15 +85,19 @@ class EcoRecycleApp {
     });
 
     // --- LÓGICA DE ESCANEO ---
-    const scanBtn = document.getElementById('scan-btn');
+    const cameraBtn = document.getElementById('camera-btn');
+    const uploadBtn = document.getElementById('upload-btn');
     const captureBtn = document.getElementById('capture-btn');
+    const scanCapturedBtn = document.getElementById('scan-captured-btn');
     const cameraInput = document.getElementById('camera-input');
     const voiceBtn = document.getElementById('voice-btn');
     const downloadImageBtn = document.getElementById('download-image-btn');
     const retakeBtn = document.getElementById('retake-btn');
 
-    if (scanBtn) scanBtn.addEventListener('click', () => this.startCamera());
-    if (captureBtn) captureBtn.addEventListener('click', () => this.captureAndClassify());
+    if (cameraBtn) cameraBtn.addEventListener('click', () => this.startCamera());
+    if (uploadBtn) uploadBtn.addEventListener('click', () => this.triggerFileUpload());
+    if (captureBtn) captureBtn.addEventListener('click', () => this.capturePhoto());
+    if (scanCapturedBtn) scanCapturedBtn.addEventListener('click', () => this.scanCapturedImage());
     if (voiceBtn) voiceBtn.addEventListener('click', () => this.toggleVoiceRecognition());
     if (cameraInput) cameraInput.addEventListener('change', (event) => this.handleFileUpload(event));
     if (downloadImageBtn) downloadImageBtn.addEventListener('click', () => this.downloadCapturedImage());
@@ -112,8 +116,6 @@ class EcoRecycleApp {
   async startCamera() {
     const video = document.getElementById('camera-stream');
     const scanPlaceholder = document.getElementById('scan-placeholder');
-    const scanBtn = document.getElementById('scan-btn');
-    const captureBtn = document.getElementById('capture-btn');
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         try {
@@ -155,10 +157,9 @@ class EcoRecycleApp {
 
             video.classList.remove('hidden');
             scanPlaceholder.classList.add('hidden');
-            scanBtn.classList.add('hidden');
-            captureBtn.classList.remove('hidden');
+            document.getElementById('camera-buttons').classList.remove('hidden');
             
-            this.showNotification("Cámara activada. Ajusta el objeto y presiona 'Capturar'", "success");
+            this.showNotification("Cámara activada. Ajusta el objeto y presiona 'Capturar Foto'", "success");
             
         } catch (error) {
             console.error("Error al acceder a la cámara: ", error);
@@ -187,13 +188,17 @@ class EcoRecycleApp {
     }
   }
 
-  async captureAndClassify() {
+  triggerFileUpload() {
+      document.getElementById('camera-input').click();
+  }
+
+  async capturePhoto() {
     const video = document.getElementById('camera-stream');
     const canvas = document.getElementById('camera-canvas');
     const context = canvas.getContext('2d');
 
     if (!video.videoWidth || !video.videoHeight) {
-        alert("Error: El video no está listo. Intenta de nuevo.");
+        this.showNotification("Error: El video no está listo. Intenta de nuevo.", "error");
         return;
     }
 
@@ -209,13 +214,9 @@ class EcoRecycleApp {
         this.stream.getTracks().forEach(track => track.stop());
     }
 
-    // Resetear la UI
-    this.resetScannerUI();
-
-    // Mostrar animación de escaneo
-    document.getElementById('scanning-animation').classList.remove('hidden');
-    document.getElementById('scan-placeholder').classList.add('hidden');
-    document.getElementById('scan-result').classList.add('hidden');
+    // Ocultar stream y mostrar botones de cámara
+    document.getElementById('camera-stream').classList.add('hidden');
+    document.getElementById('camera-buttons').classList.remove('hidden');
 
     try {
         // Crear la imagen con alta calidad JPG
@@ -238,7 +239,7 @@ class EcoRecycleApp {
         // Mostrar vista previa de la imagen capturada
         this.showCapturedImagePreview();
 
-        this.showNotification("Foto capturada exitosamente. Presiona 'Escanear' para analizar.", "success");
+        this.showNotification("Foto capturada exitosamente. Usa 'Escanear Foto' para analizar.", "success");
 
     } catch (error) {
         console.error('Error al capturar la imagen:', error);
@@ -247,13 +248,19 @@ class EcoRecycleApp {
     }
   }
 
+  async captureAndClassify() {
+    // Método legacy para compatibilidad
+    await this.capturePhoto();
+  }
+
   resetScannerUI() {
+      // Ocultar elementos de cámara
       document.getElementById('camera-stream').classList.add('hidden');
-      document.getElementById('capture-btn').classList.add('hidden');
-      document.getElementById('scan-btn').classList.remove('hidden');
+      document.getElementById('camera-buttons').classList.add('hidden');
+      
+      // Mostrar elementos principales
       document.getElementById('scan-placeholder').classList.remove('hidden');
       document.getElementById('scanning-animation').classList.add('hidden');
-      document.getElementById('secondary-buttons').classList.add('hidden');
       
       // Limpiar vista previa si existe
       const preview = document.getElementById('image-preview');
@@ -322,7 +329,7 @@ class EcoRecycleApp {
           this.showNotification("No hay imagen capturada para escanear.", "error");
           return;
       }
-
+      console.log(this.capturedImage)
       // Mostrar animación de escaneo
       document.getElementById('scanning-animation').classList.remove('hidden');
       document.getElementById('scan-result').classList.add('hidden');
@@ -364,21 +371,73 @@ class EcoRecycleApp {
     const file = event.target.files[0];
     if (!file) return;
 
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+        this.showNotification("Por favor selecciona un archivo de imagen válido.", "error");
+        return;
+    }
+
+    // Mostrar información del archivo
+    this.showNotification(`Archivo seleccionado: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`, "info");
+
     const formData = new FormData();
     formData.append('file', file);
 
-    // Mostrar animación
+    // Mostrar vista previa del archivo subido
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        this.showUploadedImagePreview(e.target.result, file.name);
+    };
+    reader.readAsDataURL(file);
+
+    // Mostrar animación de escaneo
     document.getElementById('scan-placeholder').classList.add('hidden');
     document.getElementById('scanning-animation').classList.remove('hidden');
     document.getElementById('scan-result').classList.add('hidden');
 
     await this.sendImageForClassification(formData);
 
-    // Limpiar el input para poder tomar la misma foto otra vez
+    // Limpiar el input para poder seleccionar otra imagen
     event.target.value = '';
   }
 
+  showUploadedImagePreview(dataUrl, filename) {
+      const scannerArea = document.getElementById('scanner-area');
+      
+      // Remover vista previa anterior si existe
+      const existingPreview = document.getElementById('uploaded-preview');
+      if (existingPreview) {
+          existingPreview.remove();
+      }
+
+      // Crear elemento de vista previa
+      const previewContainer = document.createElement('div');
+      previewContainer.id = 'uploaded-preview';
+      previewContainer.className = 'absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-black bg-opacity-75 rounded-lg';
+      
+      const previewImage = document.createElement('img');
+      previewImage.src = dataUrl;
+      previewImage.className = 'max-w-full max-h-32 object-contain rounded mb-2';
+      
+      const previewText = document.createElement('p');
+      previewText.textContent = `Escaneando: ${filename}`;
+      previewText.className = 'text-white text-sm text-center';
+      
+      previewContainer.appendChild(previewImage);
+      previewContainer.appendChild(previewText);
+      
+      scannerArea.appendChild(previewContainer);
+      
+      // Remover vista previa después de 3 segundos
+      setTimeout(() => {
+          if (previewContainer.parentNode) {
+              previewContainer.remove();
+          }
+      }, 3000);
+  }
+
   async sendImageForClassification(formData) {
+    console.log('Enviando imagen al servidor...');
     try {
         const response = await fetch(`${API_BASE_URL}/classify`, {
             method: 'POST',
@@ -390,11 +449,15 @@ class EcoRecycleApp {
         }
 
         const result = await response.json();
-        this.displayScanResult(result);
+        console.log('Respuesta del servidor:', result);
+        
+        // Transformar la respuesta del servidor si viene en formato predicted_class
+        const transformedResult = this.transformServerResponse(result);
+        this.displayScanResult(transformedResult);
 
     } catch (error) {
         console.error('Error al clasificar la imagen:', error);
-        alert('No se pudo conectar con el servidor de IA. Revisa la URL de la API y que el servidor esté funcionando.');
+        this.showNotification('No se pudo conectar con el servidor de IA. Revisa la conexión.', 'error');
     } finally {
         // Ocultar animación y restaurar placeholder
         document.getElementById('scanning-animation').classList.add('hidden');
@@ -402,8 +465,154 @@ class EcoRecycleApp {
     }
   }
 
+  // Método para transformar la respuesta del servidor al formato esperado
+  transformServerResponse(serverResponse) {
+      console.log('Transformando respuesta del servidor:', serverResponse);
+      
+      // Si la respuesta ya está en el formato correcto, devolverla tal como está
+      if (serverResponse.item || serverResponse.bin) {
+          return serverResponse;
+      }
+      
+      // Si la respuesta viene con predicted_class, transformarla
+      let predictedClass = '';
+      if (serverResponse.predicted_class) {
+          predictedClass = serverResponse.predicted_class.toLowerCase();
+      } else if (typeof serverResponse === 'string') {
+          predictedClass = serverResponse.toLowerCase();
+      }
+      
+      // Mapear las clases predichas a nuestro formato de datos de reciclaje
+      const recyclingMapping = {
+          // Objetos reciclables - contenedor azul
+          'plastic bottle': { 
+              item: 'Botella de plástico', 
+              bin: 'Azul (Aprovechables)', 
+              instructions: 'Lava la botella y retira la tapa antes de depositarla en la caneca azul.', 
+              points: 5, 
+              recyclable: true 
+          },
+          'botella de plastico': { 
+              item: 'Botella de plástico', 
+              bin: 'Azul (Aprovechables)', 
+              instructions: 'Lava la botella y retira la tapa antes de depositarla en la caneca azul.', 
+              points: 5, 
+              recyclable: true 
+          },
+          'bottle': { 
+              item: 'Botella', 
+              bin: 'Azul (Aprovechables)', 
+              instructions: 'Lava la botella antes de depositarla en la caneca azul.', 
+              points: 5, 
+              recyclable: true 
+          },
+          'can': { 
+              item: 'Lata de aluminio', 
+              bin: 'Azul (Aprovechables)', 
+              instructions: 'Lava la lata y deposita en caneca azul para reciclaje.', 
+              points: 4, 
+              recyclable: true 
+          },
+          'aluminum can': { 
+              item: 'Lata de aluminio', 
+              bin: 'Azul (Aprovechables)', 
+              instructions: 'Lava la lata y deposita en caneca azul para reciclaje.', 
+              points: 4, 
+              recyclable: true 
+          },
+          // Papel y cartón - contenedor gris
+          'paper': { 
+              item: 'Papel', 
+              bin: 'Gris (Papel y cartón)', 
+              instructions: 'Asegúrate de que esté limpio y seco. Deposita en caneca gris.', 
+              points: 3, 
+              recyclable: true 
+          },
+          'cardboard': { 
+              item: 'Cartón', 
+              bin: 'Gris (Papel y cartón)', 
+              instructions: 'Asegúrate de que esté limpio y seco. Deposita en caneca gris.', 
+              points: 3, 
+              recyclable: true 
+          },
+          // Vidrio - contenedor blanco
+          'glass': { 
+              item: 'Vidrio', 
+              bin: 'Blanco (Aprovechables)', 
+              instructions: 'Lava el vidrio y deposita en caneca blanca.', 
+              points: 4, 
+              recyclable: true 
+          },
+          'glass bottle': { 
+              item: 'Botella de vidrio', 
+              bin: 'Blanco (Aprovechables)', 
+              instructions: 'Lava la botella de vidrio y deposita en caneca blanca.', 
+              points: 4, 
+              recyclable: true 
+          },
+          // Orgánicos - contenedor verde
+          'organic': { 
+              item: 'Residuo orgánico', 
+              bin: 'Verde (Orgánicos)', 
+              instructions: 'Perfecto para compostaje. Deposita en caneca verde.', 
+              points: 2, 
+              recyclable: true 
+          },
+          'food waste': { 
+              item: 'Residuo orgánico', 
+              bin: 'Verde (Orgánicos)', 
+              instructions: 'Perfecto para compostaje. Deposita en caneca verde.', 
+              points: 2, 
+              recyclable: true 
+          },
+          // Residuos no reciclables - contenedor negro
+          'trash': { 
+              item: 'Residuo no reciclable', 
+              bin: 'Negro (No aprovechables)', 
+              instructions: 'Este residuo no es reciclable. Deposita en caneca negra.', 
+              points: 0, 
+              recyclable: false 
+          },
+          'non-recyclable': { 
+              item: 'Residuo no reciclable', 
+              bin: 'Negro (No aprovechables)', 
+              instructions: 'Este residuo no es reciclable. Deposita en caneca negra.', 
+              points: 0, 
+              recyclable: false 
+          }
+      };
+      
+      // Buscar coincidencia exacta o parcial
+      let matchedData = recyclingMapping[predictedClass];
+      
+      // Si no hay coincidencia exacta, buscar coincidencia parcial
+      if (!matchedData) {
+          for (const [key, value] of Object.entries(recyclingMapping)) {
+              if (predictedClass.includes(key) || key.includes(predictedClass)) {
+                  matchedData = value;
+                  break;
+              }
+          }
+      }
+      
+      // Si aún no hay coincidencia, crear una respuesta por defecto
+      if (!matchedData) {
+          matchedData = {
+              item: predictedClass || 'Objeto no identificado',
+              bin: 'Negro (No aprovechables)',
+              instructions: 'No se pudo determinar el tipo de reciclaje. Consulta con un experto o deposita en caneca negra.',
+              points: 0,
+              recyclable: false
+          };
+      }
+      
+      console.log('Resultado transformado:', matchedData);
+      return matchedData;
+  }
 
   displayScanResult(result) {
+      console.log('Mostrando resultado del escaneo:', result);
+      
       const scanResultEl = document.getElementById('scan-result');
       const resultItem = document.getElementById('result-item');
       const resultBin = document.getElementById('result-bin');
@@ -412,30 +621,53 @@ class EcoRecycleApp {
       const pointsEarnedSpan = document.getElementById('points-earned');
       const resultPoints = document.getElementById('result-points');
 
+      // Verificar que todos los elementos existan
+      if (!scanResultEl || !resultItem || !resultBin || !resultInstructions) {
+          console.error('Error: No se encontraron elementos del DOM para mostrar resultados');
+          this.showNotification('Error en la interfaz: elementos no encontrados', 'error');
+          return;
+      }
+
       if (result.error) {
-          alert(`Error: ${result.error}`);
+          this.showNotification(`Error del servidor: ${result.error}`, 'error');
           scanResultEl.classList.add('hidden');
           return;
       }
 
+      // Verificar que el resultado tenga los campos necesarios
+      if (!result.item) {
+          console.warn('Resultado sin campo item:', result);
+          result.item = 'Objeto no identificado';
+      }
+      
+      if (!result.bin) {
+          console.warn('Resultado sin campo bin:', result);
+          result.bin = 'Negro (No aprovechables)';
+      }
+
       resultItem.textContent = result.item;
       resultBin.textContent = result.bin;
-      resultInstructions.textContent = result.instructions;
+      resultInstructions.textContent = result.instructions || 'Sin instrucciones específicas';
       
       // Asignar color a la caneca
       const binColors = {
           'Verde (Orgánicos)': 'bg-green-500',
           'Azul (Aprovechables)': 'bg-blue-500',
           'Negro (No aprovechables)': 'bg-gray-800',
-          'Blanco (Aprovechables)': 'bg-gray-200'
+          'Blanco (Aprovechables)': 'bg-gray-200',
+          'Gris (Papel y cartón)': 'bg-gray-500'
       };
-      resultBinColor.className = `w-8 h-8 rounded-full mr-3 ${binColors[result.bin] || 'bg-gray-400'}`;
+      
+      const colorClass = binColors[result.bin] || 'bg-gray-400';
+      if (resultBinColor) {
+          resultBinColor.className = `w-8 h-8 rounded-full mr-3 ${colorClass}`;
+      }
 
-      if (result.points > 0) {
+      if (result.points > 0 && pointsEarnedSpan && resultPoints) {
           pointsEarnedSpan.textContent = result.points;
           resultPoints.classList.remove('hidden');
           this.fetchPoints(); // Actualizar puntos del usuario
-      } else {
+      } else if (resultPoints) {
           resultPoints.classList.add('hidden');
       }
 
@@ -1100,5 +1332,6 @@ function formatFecha(fechaISO) {
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  new EcoRecycleApp();
+  window.app = new EcoRecycleApp();
+  console.log('🚀 EcoRecycleApp inicializada y disponible en window.app');
 });
