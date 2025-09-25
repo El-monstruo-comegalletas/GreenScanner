@@ -65,19 +65,35 @@
                             </div>
                         </div>
                         
-                        <div class="flex space-x-2">
+                        <div class="space-y-2">
                             <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
-                            <button id="scan-btn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
-                                <i class="fas fa-camera mr-2"></i>
-                                Escanear
-                            </button>
-                            <button id="capture-btn" class="hidden flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
-                                <i class="fas fa-dot-circle mr-2"></i>
-                                Capturar
-                            </button>
-                            <button id="voice-btn" class="px-4 py-3 rounded-lg transition-colors bg-blue-500 hover:bg-blue-600 text-white">
-                                <i class="fas fa-microphone"></i>
-                            </button>
+                            
+                            <!-- Botones principales -->
+                            <div class="flex space-x-2">
+                                <button id="scan-btn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                                    <i class="fas fa-camera mr-2"></i>
+                                    Activar Cámara
+                                </button>
+                                <button id="capture-btn" class="hidden flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                                    <i class="fas fa-dot-circle mr-2"></i>
+                                    Capturar
+                                </button>
+                                <button id="voice-btn" class="px-4 py-3 rounded-lg transition-colors bg-purple-500 hover:bg-purple-600 text-white">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Botones secundarios (ocultos por defecto) -->
+                            <div id="secondary-buttons" class="hidden flex space-x-2">
+                                <button id="download-image-btn" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 rounded-lg transition-colors text-sm">
+                                    <i class="fas fa-download mr-1"></i>
+                                    Descargar Foto
+                                </button>
+                                <button id="retake-btn" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-3 rounded-lg transition-colors text-sm">
+                                    <i class="fas fa-redo mr-1"></i>
+                                    Nueva Foto
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -14,7 +14,8 @@
 // En desarrollo (local), usa: 'http://127.0.0.1:8000'
 // En producción (desplegado), reemplázala por la URL pública de tu API.
 //const API_BASE_URL = 'http://127.0.0.1:8000'; // <-- ¡CAMBIA ESTO ANTES DE DESPLEGAR!
-const API_BASE_URL = 'https://gs.kwb.com.co';
+const API_BASE_URL = 'http://3.131.157.227:8000'; // <-- ¡CAMBIA ESTO ANTES DE DESPLEGAR!
+
 // === Config API (frontend) ===
 const API_BASE = API_BASE_URL;   // Usamos la misma constante para consistencia
 
@@ -88,11 +89,15 @@ class EcoRecycleApp {
     const captureBtn = document.getElementById('capture-btn');
     const cameraInput = document.getElementById('camera-input');
     const voiceBtn = document.getElementById('voice-btn');
+    const downloadImageBtn = document.getElementById('download-image-btn');
+    const retakeBtn = document.getElementById('retake-btn');
 
     if (scanBtn) scanBtn.addEventListener('click', () => this.startCamera());
     if (captureBtn) captureBtn.addEventListener('click', () => this.captureAndClassify());
     if (voiceBtn) voiceBtn.addEventListener('click', () => this.toggleVoiceRecognition());
     if (cameraInput) cameraInput.addEventListener('change', (event) => this.handleFileUpload(event));
+    if (downloadImageBtn) downloadImageBtn.addEventListener('click', () => this.downloadCapturedImage());
+    if (retakeBtn) retakeBtn.addEventListener('click', () => this.retakePhoto());
 
 
     // Delegación para botones de premios
@@ -112,22 +117,72 @@ class EcoRecycleApp {
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            // Configuraciones de cámara mejoradas para mejor compatibilidad
+            const constraints = {
+                video: {
+                    facingMode: { ideal: 'environment' }, // Preferir cámara trasera pero no requerir
+                    width: { ideal: 1920, max: 1920 },
+                    height: { ideal: 1080, max: 1080 },
+                    aspectRatio: { ideal: 16/9 }
+                }
+            };
+
+            // Intentar primero con cámara trasera
+            let stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+            } catch (backCameraError) {
+                console.warn("No se pudo acceder a la cámara trasera, intentando con cualquier cámara disponible:", backCameraError);
+                // Fallback: cualquier cámara disponible
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: {
+                        width: { ideal: 1920, max: 1920 },
+                        height: { ideal: 1080, max: 1080 }
+                    } 
+                });
+            }
+
             video.srcObject = stream;
-            this.stream = stream; // Guardar el stream para detenerlo después
+            this.stream = stream;
+            
+            // Esperar a que el video esté listo
+            await new Promise((resolve) => {
+                video.onloadedmetadata = () => {
+                    video.play();
+                    resolve();
+                };
+            });
+
             video.classList.remove('hidden');
             scanPlaceholder.classList.add('hidden');
             scanBtn.classList.add('hidden');
             captureBtn.classList.remove('hidden');
+            
+            this.showNotification("Cámara activada. Ajusta el objeto y presiona 'Capturar'", "success");
+            
         } catch (error) {
             console.error("Error al acceder a la cámara: ", error);
-            alert("No se pudo acceder a la cámara. Asegúrate de dar permisos.");
-            // Fallback al input de archivo si la cámara falla
+            this.showNotification("No se pudo acceder a la cámara. Verificando permisos...", "error");
+            
+            // Intentar obtener lista de dispositivos disponibles
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                if (videoDevices.length === 0) {
+                    alert("No se encontraron cámaras disponibles en este dispositivo.");
+                } else {
+                    alert(`Se encontraron ${videoDevices.length} cámara(s), pero no se pudieron activar. Verifica los permisos del navegador.`);
+                }
+            } catch (deviceError) {
+                console.error("Error al enumerar dispositivos:", deviceError);
+            }
+            
+            // Fallback al input de archivo
             document.getElementById('camera-input').click();
         }
     } else {
-        // Fallback para navegadores sin soporte
-        alert("Tu navegador no soporta acceso a la cámara. Usa la opción de subir archivo.");
+        alert("Tu navegador no soporta acceso a la cámara. Usando selector de archivos.");
         document.getElementById('camera-input').click();
     }
   }
@@ -137,11 +192,16 @@ class EcoRecycleApp {
     const canvas = document.getElementById('camera-canvas');
     const context = canvas.getContext('2d');
 
-    // Ajustar tamaño del canvas al del video
+    if (!video.videoWidth || !video.videoHeight) {
+        alert("Error: El video no está listo. Intenta de nuevo.");
+        return;
+    }
+
+    // Ajustar tamaño del canvas al del video para mejor calidad
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    // Dibujar el frame actual del video en el canvas
+    // Dibujar el frame actual del video en el canvas con mejor calidad
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Detener el stream de la cámara
@@ -157,13 +217,34 @@ class EcoRecycleApp {
     document.getElementById('scan-placeholder').classList.add('hidden');
     document.getElementById('scan-result').classList.add('hidden');
 
+    try {
+        // Crear la imagen con alta calidad JPG
+        const imageBlob = await new Promise((resolve) => {
+            canvas.toBlob(resolve, 'image/jpeg', 0.9); // Calidad 90%
+        });
 
-    canvas.toBlob(async (blob) => {
-        const formData = new FormData();
-        // El nombre 'file' es importante, el backend espera ese nombre
-        formData.append('file', blob, 'capture.jpg');
-        await this.sendImageForClassification(formData);
-    }, 'image/jpeg');
+        if (!imageBlob) {
+            throw new Error("No se pudo generar la imagen");
+        }
+
+        // Guardar referencia de la imagen capturada
+        this.capturedImage = {
+            blob: imageBlob,
+            dataUrl: canvas.toDataURL('image/jpeg', 0.9),
+            timestamp: new Date().toISOString(),
+            filename: `eco_capture_${Date.now()}.jpg`
+        };
+
+        // Mostrar vista previa de la imagen capturada
+        this.showCapturedImagePreview();
+
+        this.showNotification("Foto capturada exitosamente. Presiona 'Escanear' para analizar.", "success");
+
+    } catch (error) {
+        console.error('Error al capturar la imagen:', error);
+        this.showNotification("Error al capturar la imagen. Intenta de nuevo.", "error");
+        this.resetScannerUI();
+    }
   }
 
   resetScannerUI() {
@@ -172,6 +253,111 @@ class EcoRecycleApp {
       document.getElementById('scan-btn').classList.remove('hidden');
       document.getElementById('scan-placeholder').classList.remove('hidden');
       document.getElementById('scanning-animation').classList.add('hidden');
+      document.getElementById('secondary-buttons').classList.add('hidden');
+      
+      // Limpiar vista previa si existe
+      const preview = document.getElementById('image-preview');
+      if (preview) {
+          preview.remove();
+      }
+      
+      // Limpiar imagen capturada
+      this.capturedImage = null;
+  }
+
+  retakePhoto() {
+      // Limpiar estado actual
+      this.resetScannerUI();
+      
+      // Ocultar resultados anteriores
+      document.getElementById('scan-result').classList.add('hidden');
+      const form = document.getElementById('recycling-form');
+      if (form) {
+          form.remove();
+      }
+      
+      // Iniciar cámara nuevamente
+      this.startCamera();
+  }
+
+  showCapturedImagePreview() {
+      const scannerArea = document.getElementById('scanner-area');
+      
+      // Remover vista previa anterior si existe
+      const existingPreview = document.getElementById('image-preview');
+      if (existingPreview) {
+          existingPreview.remove();
+      }
+
+      // Crear elemento de vista previa
+      const previewContainer = document.createElement('div');
+      previewContainer.id = 'image-preview';
+      previewContainer.className = 'absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-black bg-opacity-75 rounded-lg';
+      
+      const previewImage = document.createElement('img');
+      previewImage.src = this.capturedImage.dataUrl;
+      previewImage.className = 'max-w-full max-h-32 object-contain rounded mb-2';
+      
+      const previewText = document.createElement('p');
+      previewText.textContent = 'Imagen capturada - Lista para escanear';
+      previewText.className = 'text-white text-sm text-center';
+      
+      const scanImageBtn = document.createElement('button');
+      scanImageBtn.textContent = 'Escanear esta imagen';
+      scanImageBtn.className = 'mt-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors';
+      scanImageBtn.addEventListener('click', () => this.scanCapturedImage());
+      
+      previewContainer.appendChild(previewImage);
+      previewContainer.appendChild(previewText);
+      previewContainer.appendChild(scanImageBtn);
+      
+      scannerArea.appendChild(previewContainer);
+      
+      // Mostrar botones secundarios
+      document.getElementById('secondary-buttons').classList.remove('hidden');
+  }
+
+  async scanCapturedImage() {
+      if (!this.capturedImage) {
+          this.showNotification("No hay imagen capturada para escanear.", "error");
+          return;
+      }
+
+      // Mostrar animación de escaneo
+      document.getElementById('scanning-animation').classList.remove('hidden');
+      document.getElementById('scan-result').classList.add('hidden');
+      
+      const preview = document.getElementById('image-preview');
+      if (preview) {
+          preview.classList.add('hidden');
+      }
+
+      try {
+          const formData = new FormData();
+          formData.append('file', this.capturedImage.blob, this.capturedImage.filename);
+          
+          await this.sendImageForClassification(formData);
+          
+      } catch (error) {
+          console.error('Error al escanear la imagen:', error);
+          this.showNotification("Error al escanear la imagen. Intenta de nuevo.", "error");
+      }
+  }
+
+  downloadCapturedImage() {
+      if (!this.capturedImage) {
+          this.showNotification("No hay imagen para descargar.", "error");
+          return;
+      }
+
+      const link = document.createElement('a');
+      link.href = this.capturedImage.dataUrl;
+      link.download = this.capturedImage.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      this.showNotification("Imagen descargada exitosamente.", "success");
   }
 
   async handleFileUpload(event) {
@@ -253,7 +439,217 @@ class EcoRecycleApp {
           resultPoints.classList.add('hidden');
       }
 
+      // Almacenar resultado para generar formulario
+      this.lastScanResult = result;
+
+      // Generar formulario basado en la respuesta
+      this.generateRecyclingForm(result);
+
       scanResultEl.classList.remove('hidden');
+  }
+
+  generateRecyclingForm(result) {
+      // Remover formulario anterior si existe
+      const existingForm = document.getElementById('recycling-form');
+      if (existingForm) {
+          existingForm.remove();
+      }
+
+      const formContainer = document.createElement('div');
+      formContainer.id = 'recycling-form';
+      formContainer.className = 'bg-white rounded-xl p-6 shadow-lg mt-4';
+
+      const formHTML = `
+          <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+              <i class="fas fa-clipboard-list mr-2 text-blue-500"></i>
+              Formulario de Reciclaje
+          </h3>
+          
+          <form id="recycling-data-form" class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Objeto Identificado</label>
+                      <input type="text" name="item" value="${result.item || ''}" 
+                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" readonly>
+                  </div>
+                  
+                  <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Contenedor Asignado</label>
+                      <input type="text" name="bin" value="${result.bin || ''}" 
+                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" readonly>
+                  </div>
+                  
+                  <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Puntos Obtenidos</label>
+                      <input type="number" name="points" value="${result.points || 0}" 
+                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" readonly>
+                  </div>
+                  
+                  <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Fecha y Hora</label>
+                      <input type="datetime-local" name="timestamp" value="${new Date().toISOString().slice(0, 16)}" 
+                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" readonly>
+                  </div>
+              </div>
+              
+              <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Instrucciones de Reciclaje</label>
+                  <textarea name="instructions" rows="3" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" readonly>${result.instructions || ''}</textarea>
+              </div>
+              
+              <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Ubicación (Opcional)</label>
+                  <input type="text" name="location" placeholder="Ej: Casa, Oficina, Parque..."
+                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+              </div>
+              
+              <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Notas Adicionales (Opcional)</label>
+                  <textarea name="notes" rows="2" placeholder="Observaciones adicionales..."
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+              </div>
+              
+              <div class="flex space-x-3 pt-4">
+                  <button type="submit" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                      <i class="fas fa-save mr-2"></i>
+                      Guardar Registro
+                  </button>
+                  
+                  <button type="button" id="download-form-btn" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                      <i class="fas fa-download mr-2"></i>
+                      Descargar
+                  </button>
+                  
+                  <button type="button" id="share-form-btn" class="px-4 py-3 rounded-lg transition-colors bg-purple-500 hover:bg-purple-600 text-white">
+                      <i class="fas fa-share"></i>
+                  </button>
+              </div>
+          </form>
+      `;
+
+      formContainer.innerHTML = formHTML;
+
+      // Insertar el formulario después del resultado del escaneo
+      const scanResultEl = document.getElementById('scan-result');
+      scanResultEl.parentNode.insertBefore(formContainer, scanResultEl.nextSibling);
+
+      // Añadir event listeners
+      this.bindFormEvents();
+  }
+
+  bindFormEvents() {
+      const form = document.getElementById('recycling-data-form');
+      const downloadBtn = document.getElementById('download-form-btn');
+      const shareBtn = document.getElementById('share-form-btn');
+
+      if (form) {
+          form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+      }
+
+      if (downloadBtn) {
+          downloadBtn.addEventListener('click', () => this.downloadFormData());
+      }
+
+      if (shareBtn) {
+          shareBtn.addEventListener('click', () => this.shareFormData());
+      }
+  }
+
+  async handleFormSubmit(event) {
+      event.preventDefault();
+      
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData.entries());
+      
+      // Añadir imagen si está disponible
+      if (this.capturedImage) {
+          data.imageFilename = this.capturedImage.filename;
+          data.imageTimestamp = this.capturedImage.timestamp;
+      }
+
+      try {
+          // Guardar en localStorage como backup
+          const existingRecords = JSON.parse(localStorage.getItem('recyclingRecords') || '[]');
+          existingRecords.push({
+              ...data,
+              id: Date.now(),
+              createdAt: new Date().toISOString()
+          });
+          localStorage.setItem('recyclingRecords', JSON.stringify(existingRecords));
+
+          // Intentar enviar al backend si está disponible
+          try {
+              const response = await fetch(`${API_BASE_URL}/save-recycling-record`, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(data),
+              });
+
+              if (response.ok) {
+                  this.showNotification("Registro guardado exitosamente en el servidor.", "success");
+              } else {
+                  this.showNotification("Registro guardado localmente. El servidor no está disponible.", "warning");
+              }
+          } catch (serverError) {
+              console.warn("Servidor no disponible, guardado solo localmente:", serverError);
+              this.showNotification("Registro guardado localmente.", "success");
+          }
+
+      } catch (error) {
+          console.error('Error al guardar el registro:', error);
+          this.showNotification("Error al guardar el registro.", "error");
+      }
+  }
+
+  downloadFormData() {
+      const form = document.getElementById('recycling-data-form');
+      if (!form) return;
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      
+      const jsonData = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `registro_reciclaje_${Date.now()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      this.showNotification("Datos del formulario descargados.", "success");
+  }
+
+  shareFormData() {
+      const form = document.getElementById('recycling-data-form');
+      if (!form) return;
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      
+      const shareText = `🌱 Registro de Reciclaje EcoRecycle\n\n` +
+                       `📦 Objeto: ${data.item}\n` +
+                       `🗑️ Contenedor: ${data.bin}\n` +
+                       `⭐ Puntos: ${data.points}\n` +
+                       `📍 Ubicación: ${data.location || 'No especificada'}\n` +
+                       `📝 Instrucciones: ${data.instructions}\n\n` +
+                       `#EcoRecycle #Reciclaje #MedioAmbiente`;
+
+      if (navigator.share) {
+          navigator.share({
+              title: 'Registro de Reciclaje - EcoRecycle',
+              text: shareText,
+          });
+      } else {
+          // Fallback: copiar al portapapeles
+          navigator.clipboard.writeText(shareText).then(() => {
+              this.showNotification("Datos copiados al portapapeles.", "success");
+          });
+      }
   }
 
   // ---------------- Navegación/pestañas ----------------
@@ -594,14 +990,42 @@ class EcoRecycleApp {
     this.showNotification(message);
   }
 
-  showNotification(message) {
+  showNotification(message, type = 'success') {
     const notificationDiv = document.getElementById('notifications');
     const messageP = document.getElementById('notification-message');
     if (!notificationDiv || !messageP) return;
 
+    // Remover clases de color anteriores
+    notificationDiv.className = notificationDiv.className.replace(/bg-\w+-100|border-\w+-500/g, '');
+    messageP.className = messageP.className.replace(/text-\w+-700/g, '');
+
+    // Aplicar estilos según el tipo
+    switch (type) {
+        case 'error':
+            notificationDiv.classList.add('bg-red-100', 'border-red-500');
+            messageP.classList.add('text-red-700');
+            break;
+        case 'warning':
+            notificationDiv.classList.add('bg-yellow-100', 'border-yellow-500');
+            messageP.classList.add('text-yellow-700');
+            break;
+        case 'info':
+            notificationDiv.classList.add('bg-blue-100', 'border-blue-500');
+            messageP.classList.add('text-blue-700');
+            break;
+        default: // success
+            notificationDiv.classList.add('bg-green-100', 'border-green-500');
+            messageP.classList.add('text-green-700');
+            break;
+    }
+
     messageP.textContent = message;
     notificationDiv.classList.remove('hidden');
-    setTimeout(() => notificationDiv.classList.add('hidden'), 3000);
+    
+    // Auto-hide después de 4 segundos (más tiempo para leer)
+    setTimeout(() => {
+        notificationDiv.classList.add('hidden');
+    }, 4000);
   }
   
 

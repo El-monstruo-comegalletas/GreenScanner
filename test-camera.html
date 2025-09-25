@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Cámara - EcoRecycle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .camera-area {
+            width: 100%;
+            height: 300px;
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        .camera-stream {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        .button:hover {
+            background: #059669;
+        }
+        .button.secondary {
+            background: #6b7280;
+        }
+        .button.secondary:hover {
+            background: #4b5563;
+        }
+        .hidden {
+            display: none;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-radius: 6px;
+            border-left: 4px solid #0ea5e9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 Prueba de Funcionalidad de Cámara</h1>
+        <p>Esta página prueba las funcionalidades de captura de cámara implementadas:</p>
+        
+        <div class="camera-area" id="camera-area">
+            <div id="placeholder">
+                <p>📸 Haz clic en "Activar Cámara" para comenzar</p>
+            </div>
+            <video id="camera-stream" class="camera-stream hidden" autoplay></video>
+        </div>
+        
+        <div class="controls">
+            <button class="button" id="start-camera">Activar Cámara</button>
+            <button class="button hidden" id="capture-photo">Capturar Foto</button>
+            <button class="button secondary hidden" id="download-photo">Descargar JPG</button>
+            <button class="button secondary" id="upload-file">Subir Archivo</button>
+            <input type="file" id="file-input" accept="image/*" class="hidden">
+        </div>
+        
+        <div id="result" class="result hidden">
+            <h3>✅ Funcionalidades Probadas:</h3>
+            <ul id="test-results"></ul>
+        </div>
+        
+        <canvas id="capture-canvas" class="hidden"></canvas>
+    </div>
+
+    <script>
+        class CameraTest {
+            constructor() {
+                this.stream = null;
+                this.capturedImage = null;
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                document.getElementById('start-camera').addEventListener('click', () => this.startCamera());
+                document.getElementById('capture-photo').addEventListener('click', () => this.capturePhoto());
+                document.getElementById('download-photo').addEventListener('click', () => this.downloadPhoto());
+                document.getElementById('upload-file').addEventListener('click', () => {
+                    document.getElementById('file-input').click();
+                });
+                document.getElementById('file-input').addEventListener('change', (e) => this.handleFileUpload(e));
+            }
+
+            async startCamera() {
+                const video = document.getElementById('camera-stream');
+                const placeholder = document.getElementById('placeholder');
+                
+                try {
+                    // Solicitar permisos de cámara con configuración mejorada
+                    const constraints = {
+                        video: {
+                            facingMode: { ideal: 'environment' },
+                            width: { ideal: 1920, max: 1920 },
+                            height: { ideal: 1080, max: 1080 },
+                            aspectRatio: { ideal: 16/9 }
+                        }
+                    };
+
+                    let stream;
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    } catch (backCameraError) {
+                        console.warn("Cámara trasera no disponible, usando cualquier cámara:", backCameraError);
+                        stream = await navigator.mediaDevices.getUserMedia({ 
+                            video: {
+                                width: { ideal: 1920, max: 1920 },
+                                height: { ideal: 1080, max: 1080 }
+                            } 
+                        });
+                    }
+
+                    video.srcObject = stream;
+                    this.stream = stream;
+                    
+                    await new Promise((resolve) => {
+                        video.onloadedmetadata = () => {
+                            video.play();
+                            resolve();
+                        };
+                    });
+
+                    video.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                    document.getElementById('start-camera').classList.add('hidden');
+                    document.getElementById('capture-photo').classList.remove('hidden');
+                    
+                    this.addTestResult("✅ Cámara activada correctamente");
+                    
+                } catch (error) {
+                    console.error("Error al acceder a la cámara:", error);
+                    this.addTestResult("❌ Error al activar cámara: " + error.message);
+                    
+                    // Mostrar información de dispositivos disponibles
+                    try {
+                        const devices = await navigator.mediaDevices.enumerateDevices();
+                        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                        this.addTestResult(`📷 Cámaras detectadas: ${videoDevices.length}`);
+                    } catch (deviceError) {
+                        console.error("Error al enumerar dispositivos:", deviceError);
+                    }
+                }
+            }
+
+            async capturePhoto() {
+                const video = document.getElementById('camera-stream');
+                const canvas = document.getElementById('capture-canvas');
+                const context = canvas.getContext('2d');
+
+                if (!video.videoWidth || !video.videoHeight) {
+                    this.addTestResult("❌ Video no está listo para captura");
+                    return;
+                }
+
+                // Configurar canvas con dimensiones del video
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                // Dibujar frame del video en canvas
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Detener stream
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => track.stop());
+                }
+
+                try {
+                    // Crear blob de imagen JPG con alta calidad
+                    const imageBlob = await new Promise((resolve) => {
+                        canvas.toBlob(resolve, 'image/jpeg', 0.9);
+                    });
+
+                    if (!imageBlob) {
+                        throw new Error("No se pudo generar la imagen");
+                    }
+
+                    this.capturedImage = {
+                        blob: imageBlob,
+                        dataUrl: canvas.toDataURL('image/jpeg', 0.9),
+                        filename: `eco_test_${Date.now()}.jpg`,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    // Mostrar vista previa
+                    this.showPreview();
+                    
+                    document.getElementById('capture-photo').classList.add('hidden');
+                    document.getElementById('download-photo').classList.remove('hidden');
+                    
+                    this.addTestResult("✅ Foto capturada en formato JPG");
+                    this.addTestResult(`📐 Resolución: ${canvas.width}x${canvas.height}px`);
+                    this.addTestResult(`📁 Tamaño: ${(imageBlob.size / 1024).toFixed(2)} KB`);
+
+                } catch (error) {
+                    console.error('Error al capturar foto:', error);
+                    this.addTestResult("❌ Error en captura: " + error.message);
+                }
+            }
+
+            showPreview() {
+                const cameraArea = document.getElementById('camera-area');
+                const video = document.getElementById('camera-stream');
+                
+                video.classList.add('hidden');
+                
+                const preview = document.createElement('img');
+                preview.id = 'preview-image';
+                preview.src = this.capturedImage.dataUrl;
+                preview.className = 'camera-stream';
+                preview.style.border = '3px solid #10b981';
+                
+                cameraArea.appendChild(preview);
+            }
+
+            downloadPhoto() {
+                if (!this.capturedImage) {
+                    this.addTestResult("❌ No hay foto para descargar");
+                    return;
+                }
+
+                const link = document.createElement('a');
+                link.href = this.capturedImage.dataUrl;
+                link.download = this.capturedImage.filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                this.addTestResult("✅ Foto descargada como JPG");
+            }
+
+            handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                this.addTestResult(`✅ Archivo seleccionado: ${file.name}`);
+                this.addTestResult(`📁 Tipo: ${file.type}`);
+                this.addTestResult(`📏 Tamaño: ${(file.size / 1024).toFixed(2)} KB`);
+
+                // Mostrar vista previa del archivo
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const cameraArea = document.getElementById('camera-area');
+                    const placeholder = document.getElementById('placeholder');
+                    
+                    placeholder.innerHTML = `
+                        <img src="${e.target.result}" style="max-width: 100%; max-height: 280px; border-radius: 8px;">
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            addTestResult(message) {
+                const resultDiv = document.getElementById('result');
+                const resultsList = document.getElementById('test-results');
+                
+                const listItem = document.createElement('li');
+                listItem.textContent = message;
+                listItem.style.marginBottom = '5px';
+                
+                resultsList.appendChild(listItem);
+                resultDiv.classList.remove('hidden');
+            }
+        }
+
+        // Inicializar cuando la página cargue
+        document.addEventListener('DOMContentLoaded', () => {
+            new CameraTest();
+        });
+    </script>
+</body>
+</html>
