@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoRecycle - App de Reciclaje con IA</title>
+    <title>GreenScanner - App de Reciclaje con IA</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div id="app" class="max-w-md mx-auto bg-gray-50 min-h-screen">
-        <!-- Header -->
+    <div id="app" class="max-w-md mx-auto bg-gray-50 min-h-screen">        <!-- Header -->
         <header class="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 shadow-lg">
             <div class="flex items-center justify-between">
-                <h1 class="text-xl font-bold">EcoRecycle</h1>
+                <h1 class="text-xl font-bold">GreenScanner</h1>
                 <div class="flex items-center space-x-2">
                     <i class="fas fa-trophy"></i>
                     <span id="user-points" class="font-semibold">425</span>
+                    <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-lg transition-colors ml-2">
+                        <i class="fas fa-sign-out-alt mr-1"></i>
+                        Salir
+                    </button>
                 </div>
             </div>
         </header>
@@ -35,9 +38,7 @@
                         <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg eco-bounce">
                             <i class="fas fa-leaf text-white text-2xl"></i>
                         </div>
-                        <div class="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                            <span class="text-xs">😊</span>
-                        </div>
+                       
                     </div>
                     <div class="mt-2 bg-white rounded-lg p-2 shadow-md max-w-xs">
                         <p class="text-sm text-gray-700 text-center">¡Hola! Soy EcoBot 🌱 ¿Qué quieres reciclar hoy?</p>
@@ -67,8 +68,7 @@
                         
                         <div class="space-y-2">
                             <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
-                            
-                            <!-- Botones principales -->
+                              <!-- Botones principales -->
                             <div class="flex space-x-2">
                                 <button id="camera-btn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
                                     <i class="fas fa-camera mr-2"></i>
@@ -80,8 +80,7 @@
                                 </button>
                                 <button id="voice-btn" class="px-4 py-3 rounded-lg transition-colors bg-purple-500 hover:bg-purple-600 text-white">
                                     <i class="fas fa-microphone"></i>
-                                </button>
-                            </div>
+                                </button>                            </div>
                             
                             <!-- Botones de cámara (ocultos por defecto) -->
                             <div id="camera-buttons" class="hidden flex space-x-2">
@@ -108,9 +107,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Scan Result -->
+                </div>                <!-- Scan Result -->
                 <div id="scan-result" class="hidden bg-white rounded-xl p-6 shadow-lg">
                     <div class="flex items-center mb-4">
                         <div id="result-bin-color" class="w-8 h-8 rounded-full mr-3"></div>
@@ -127,10 +124,17 @@
                         
                         <div id="result-points" class="hidden flex items-center text-green-600">
                             <i class="fas fa-check-circle mr-1"></i>
-                            <span class="text-sm font-medium">+<span id="points-earned">0</span> puntos EcoRecycle</span>
+                            <span class="text-sm font-medium">+<span id="points-earned">0</span> puntos GreenScanner</span>
                         </div>
                     </div>
-                </div>
+                </div>                <!-- Panel de Respuesta del Modelo IA (se crea dinámicamente) -->
+                <!-- El panel #model-response-panel aparecerá aquí después de cada escaneo -->
+                
+                <!-- Panel de Clasificaciones Dinámico (se crea dinámicamente) -->
+                <!-- El panel #classifications-panel aparecerá aquí cuando haya clasificaciones -->
+                
+                <!-- Botón de Acceso al Formulario (se crea dinámicamente cuando hay 3+ fotos) -->
+                <!-- El botón #form-access-button aparecerá aquí cuando se reúnan suficientes clasificaciones -->
             </div>
 
             <!-- History Tab -->
@@ -141,9 +145,7 @@
                         <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg eco-bounce">
                             <i class="fas fa-leaf text-white text-2xl"></i>
                         </div>
-                        <div class="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                            <span class="text-xs">😊</span>
-                        </div>
+                      
                     </div>
                     <div class="mt-2 bg-white rounded-lg p-2 shadow-md max-w-xs">
                         <p class="text-sm text-gray-700 text-center">¡Aquí está tu historial de reciclaje personal! 📊</p>
@@ -255,9 +257,7 @@
                 </button>
             </div>
         </nav>
-    </div>
-
-    <script src="js/app.js"></script>
-    <script src="debug-script.js"></script>
+    </div>    <script src="js/app.js"></script>
+    <!-- <script src="debug-script.js"></script> -->
 </body>
 </html>

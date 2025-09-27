@@ -9,6 +9,7 @@ body {
   line-height: 1.6;
   color: #1f2937; /* gray-800 para mejor contraste */
   background-color: #f9fafb;
+  overflow-x: hidden;
 }
 
 /* Container helpers */
@@ -123,10 +124,395 @@ main { padding: 1rem; padding-bottom: 5rem; }
    Scanner
    ======================================================= */
 #scanner-area {
-  background-color: #f3f4f6;
-  height: 12rem;
-  display: flex; align-items: center; justify-content: center;
+  background-color: #1f2937; /* Color más oscuro para contraste */
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  height: 280px; /* Aumentamos altura */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  position: relative;
+  overflow: hidden;
+  border: 2px dashed #6b7280;
+  transition: all 0.3s ease;
 }
+
+#scanner-area:hover {
+  border-color: #10b981;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+/* Placeholder del escáner */
+#scan-placeholder {
+  z-index: 10;
+  color: #9ca3af;
+  transition: all 0.3s ease;
+}
+
+#scan-placeholder i {
+  font-size: 4rem !important;
+  margin-bottom: 1rem;
+  color: #6b7280;
+  transition: color 0.3s ease;
+}
+
+#scanner-area:hover #scan-placeholder i {
+  color: #10b981;
+}
+
+/* Mejoras para el texto del placeholder */
+#scan-placeholder p {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+#scanner-area:hover #scan-placeholder p {
+  color: #10b981;
+}
+
+/* Video stream mejorado */
+#camera-stream {
+  border-radius: 0.75rem;
+  object-fit: cover;
+  z-index: 5;
+}
+
+/* Vista previa de imagen capturada - OCUPA TODA LA VISTA */
+#image-preview,
+#uploaded-preview {
+  background: linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.8) 100%);
+  backdrop-filter: blur(10px);
+  border-radius: 0.75rem;
+  z-index: 15;
+  padding: 1rem;
+}
+
+#image-preview img,
+#uploaded-preview img {
+  max-width: 100%;
+  max-height: 220px; /* Ajustado para que quepa bien */
+  width: 100%;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+#image-preview p,
+#uploaded-preview p {
+  color: #f9fafb !important;
+  font-weight: 500;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-top: 0.75rem;
+}
+
+/* Botón de escanear dentro de la vista previa */
+#image-preview button,
+#uploaded-preview button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  padding: 1rem 2rem !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: none !important;
+  cursor: pointer !important;
+  font-size: 0.95rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+#image-preview button:hover,
+#uploaded-preview button:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow: 0 12px 30px rgba(16, 185, 129, 0.6) !important;
+}
+
+#image-preview button:active,
+#uploaded-preview button:active {
+  transform: translateY(0) scale(1) !important;
+}
+
+/* Botones mejorados - MÁS VISIBLES */
+.flex.space-x-2 button {
+  font-weight: 600 !important;
+  padding: 0.875rem 1rem !important; /* Más padding */
+  border-radius: 0.75rem !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efecto hover mejorado para botones */
+.flex.space-x-2 button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.flex.space-x-2 button:active {
+  transform: translateY(0);
+}
+
+/* Botones principales con mejor contraste */
+#camera-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+
+#camera-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+}
+
+#upload-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+}
+
+#upload-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+}
+
+#voice-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+  min-width: 60px;
+}
+
+#voice-btn:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+}
+
+/* Botones de cámara (capturar/escanear) */
+#camera-buttons button {
+  font-weight: 600 !important;
+  padding: 1rem 1.25rem !important;
+  font-size: 0.95rem !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+#capture-btn {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+  animation: pulse-orange 2s infinite;
+}
+
+@keyframes pulse-orange {
+  0%, 100% { box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3); }
+  50% { box-shadow: 0 4px 25px rgba(249, 115, 22, 0.5); }
+}
+
+#scan-captured-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+
+/* Botones secundarios mejorados */
+#secondary-buttons {
+  margin-top: 0.75rem;
+}
+
+#secondary-buttons button {
+  padding: 0.75rem 1rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Estados de botones deshabilitados */
+button:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Animación para mostrar botones */
+#camera-buttons.show,
+#secondary-buttons.show {
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Spinner mejorado */
+.spinner {
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  border: 3px solid rgba(255, 255, 255, 0.3) !important;
+  border-top: 3px solid #10b981 !important;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
+
+/* Efecto flash para captura de foto */
+@keyframes flash {
+  0% { opacity: 0; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+/* Estados de carga mejorados */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  z-index: 20;
+}
+
+.loading-overlay .spinner {
+  width: 4rem;
+  height: 4rem;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid #10b981;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-overlay p {
+  color: white;
+  margin-top: 1rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Texto de escaneo */
+#scanning-animation p {
+  color: #f3f4f6 !important;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  #scanner-area {
+    height: 240px;
+    margin: 0 -0.5rem;
+    border-radius: 0.5rem;
+  }
+  
+  .flex.space-x-2 button {
+    padding: 0.75rem 0.75rem !important;
+    font-size: 0.875rem !important;
+  }
+  
+  #camera-buttons button {
+    padding: 0.875rem 1rem !important;
+  }
+  
+  #image-preview img,
+  #uploaded-preview img {
+    max-height: 180px;
+  }
+}
+
+/* Mejoras para responsive en pantallas muy pequeñas */
+@media (max-width: 360px) {
+  #scanner-area {
+    height: 200px;
+    padding: 0.5rem;
+  }
+  
+  .flex.space-x-2 {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .flex.space-x-2 button {
+    flex: 1;
+    min-width: calc(50% - 0.25rem);
+    padding: 0.75rem 0.5rem !important;
+    font-size: 0.8rem !important;
+  }
+  
+  #voice-btn {
+    min-width: auto;
+    flex: none;
+    width: 50px;
+  }
+  
+  #image-preview img,
+  #uploaded-preview img {
+    max-height: 140px;
+  }
+  
+  #image-preview button,
+  #uploaded-preview button {
+    padding: 0.75rem 1.5rem !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+/* Mejoras para el área de resultado del scan */
+#scan-result {
+  animation: slideUp 0.5s ease-out;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Icono de contenedor */
+#result-bin-color {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 2px solid #f3f4f6;
+}
+
+/* Mobile-optimized camera stream */
+#camera-stream {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+
+/* Image preview styles for mobile */
+.image-preview, .uploaded-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 0.5rem;
+  z-index: 10;
+}
+
+.image-preview img, .uploaded-preview img {
+  max-width: 90%;
+  max-height: 70%;
+  object-fit: contain;
+  border-radius: 0.25rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.preview-text {
+  color: white;
+  text-align: center;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 0 1rem;
+}
+
 .h-48 { height: 12rem; }
 .bg-gray-100 { background-color: #f3f4f6; }
 
@@ -504,6 +890,509 @@ button:focus {
 /* Text size utilities */
 .text-sm { font-size: 0.875rem; }
 .text-lg { font-size: 1.125rem; }
+
+/* =======================================================
+   Mobile Optimizations & Image Handling
+   ======================================================= */
+
+/* Ensure app container is mobile-friendly */
+#app {
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Mobile-first responsive adjustments */
+@media (max-width: 480px) {
+  .max-w-md { 
+    max-width: 100%; 
+    margin: 0;
+  }
+  
+  main { 
+    padding: 0.75rem; 
+    padding-bottom: 5rem; 
+  }
+  
+  #scanner-area {
+    height: 10rem;
+    margin: 0.5rem 0;
+  }
+  
+  .image-preview img, .uploaded-preview img {
+    max-width: 95%;
+    max-height: 80%;
+  }
+  
+  /* Adjust button sizes for mobile */
+  .py-3 { 
+    padding-top: 0.625rem; 
+    padding-bottom: 0.625rem; 
+  }
+  
+  .px-4 { 
+    padding-left: 0.75rem; 
+    padding-right: 0.75rem; 
+  }
+  
+  /* Header adjustments for mobile */
+  header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .text-xl { 
+    font-size: 1.125rem; 
+  }
+}
+
+/* Image handling improvements */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Canvas element styling */
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Improved camera controls for mobile */
+.space-x-2 > * + * { 
+  margin-left: 0.375rem; 
+}
+
+@media (max-width: 380px) {
+  .space-x-2 > * + * { 
+    margin-left: 0.25rem; 
+  }
+  
+  .px-4 { 
+    padding-left: 0.5rem; 
+    padding-right: 0.5rem; 
+  }
+  
+  .text-sm { 
+    font-size: 0.8125rem; 
+  }
+}
+
+/* Prevent horizontal scroll on mobile */
+body {
+  overflow-x: hidden;
+}
+
+/* Improve touch targets for mobile */
+button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Better spacing for mobile cards */
+@media (max-width: 480px) {
+  .space-y-6 > * + * { 
+    margin-top: 1.25rem; 
+  }
+  
+  .p-6 { 
+    padding: 1.25rem; 
+  }
+}
+
+/* Animación de aparición para elementos */
+.fade-in {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de desaparición */
+.fade-out {
+  animation: fadeOutDown 0.3s ease-out forwards;
+}
+
+@keyframes fadeOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+/* =======================================================
+   Panel Dinámico de Clasificaciones
+   ======================================================= */
+
+#classifications-panel {
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  transition: all 0.3s ease;
+}
+
+#classifications-panel:hover {
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Elementos de clasificación individual */
+#classifications-panel .border-green-300 {
+  border-color: #86efac !important;
+  background-color: #f0fdf4 !important;
+  animation: pulseGreen 2s ease-in-out;
+}
+
+@keyframes pulseGreen {
+  0%, 100% { 
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% { 
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+}
+
+/* Botón de acceso al formulario */
+#form-access-button {
+  animation: slideInFromBottom 0.6s ease-out;
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+#form-access-button button:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+
+/* Iconos de materiales mejorados */
+.bg-blue-600 { background-color: #2563eb; }
+.bg-blue-300 { background-color: #93c5fd; }
+
+/* =======================================================
+   Modal de Encuesta Mejorado
+   ======================================================= */
+
+#survey-modal {
+  backdrop-filter: blur(8px);
+  animation: modalFadeIn 0.4s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+#survey-modal .bg-white {
+  animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Preguntas del formulario */
+#survey-modal .bg-gray-50 {
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+#survey-modal .bg-gray-50:hover {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  transform: translateX(4px);
+}
+
+/* Opciones de radio mejoradas */
+#survey-modal input[type="radio"] {
+  accent-color: #10b981;
+  transform: scale(1.2);
+}
+
+#survey-modal label:hover {
+  background-color: rgba(16, 185, 129, 0.05);
+  border-radius: 0.375rem;
+  padding: 0.25rem;
+  margin: -0.25rem;
+  cursor: pointer;
+}
+
+/* Resultados del quiz */
+.border-green-200 {
+  border-color: #bbf7d0;
+  animation: correctAnswer 0.6s ease-out;
+}
+
+.border-red-200 {
+  border-color: #fecaca;
+  animation: incorrectAnswer 0.6s ease-out;
+}
+
+@keyframes correctAnswer {
+  0% { 
+    background-color: transparent; 
+    transform: scale(1);
+  }
+  50% { 
+    background-color: #f0fdf4; 
+    transform: scale(1.02);
+  }
+  100% { 
+    background-color: #f0fdf4;
+    transform: scale(1);
+  }
+}
+
+@keyframes incorrectAnswer {
+  0% { 
+    background-color: transparent; 
+    transform: scale(1);
+  }
+  50% { 
+    background-color: #fef2f2; 
+    transform: scale(1.02);
+  }
+  100% { 
+    background-color: #fef2f2;
+    transform: scale(1);
+  }
+}
+
+/* Contador de fotos flotante mejorado */
+#photo-counter {
+  animation: floatIn 0.5s ease-out;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateX(100px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+#photo-counter.bg-orange-500 {
+  animation: celebrate 1s ease-in-out;
+}
+
+@keyframes celebrate {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(-5deg); }
+  75% { transform: scale(1.1) rotate(5deg); }
+}
+
+/* =======================================================
+   Responsive para Panel de Clasificaciones
+   ======================================================= */
+
+@media (max-width: 480px) {
+  #classifications-panel {
+    margin: 0.5rem -0.5rem;
+    border-radius: 0.75rem;
+  }
+  
+  #classifications-panel .flex {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  #classifications-panel .w-10 {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0 auto 0.5rem;
+  }
+  
+  #form-access-button {
+    margin: 1rem -0.5rem;
+    border-radius: 0.75rem;
+  }
+  
+  #form-access-button .flex {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  #survey-modal .max-w-md {
+    max-width: calc(100% - 1rem);
+    margin: 0.5rem;
+  }
+  
+  #survey-modal .p-6 {
+    padding: 1rem;
+  }
+}
+
+/* Indicador visual cuando el área del escáner está activa */
+#scanner-area.active {
+  border-color: #10b981 !important;
+  background: linear-gradient(135deg, #1f2937 0%, #065f46 100%) !important;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+}
+
+/* =======================================================
+   Survey Modal Animations
+   ======================================================= */
+
+/* Animación de aparición del modal */
+.fade-in {
+  animation: fadeInScale 0.3s ease-out forwards;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Animación de desaparición del modal */
+.fade-out {
+  animation: fadeOutScale 0.3s ease-out forwards;
+}
+
+@keyframes fadeOutScale {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+}
+
+/* Animación para los botones del modal */
+#survey-modal button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+/* Animación para las preguntas del quiz */
+#survey-modal .border {
+  transition: all 0.2s ease;
+}
+
+#survey-modal .border:hover {
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Indicador de progreso visual para las respuestas */
+input[type="radio"]:checked + span {
+  color: #059669;
+  font-weight: 600;
+}
+
+/* =======================================================
+   Panel de Respuesta del Modelo
+   ======================================================= */
+
+#model-response-panel {
+  border-left: 4px solid #0d9488;
+  transition: all 0.3s ease;
+}
+
+#model-response-panel:hover {
+  box-shadow: 0 8px 25px rgba(13, 148, 136, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Panel interno estilo tarjeta */
+#model-response-panel .bg-white {
+  transition: all 0.2s ease;
+}
+
+#model-response-panel .bg-white:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Icono del material */
+#model-response-panel .w-10.h-10 {
+  transition: transform 0.2s ease;
+}
+
+#model-response-panel:hover .w-10.h-10 {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Información técnica colapsible */
+#model-response-panel .bg-gray-50 {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+#model-response-panel .bg-gray-50:hover {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+/* Responsive para panel de modelo */
+@media (max-width: 480px) {
+  #model-response-panel {
+    margin: 1rem -0.5rem;
+    border-radius: 0.75rem;
+    border-left-width: 3px;
+  }
+  
+  #model-response-panel .flex {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  #model-response-panel .w-10 {
+    margin: 0 auto;
+  }
+  
+  #model-response-panel .text-right {
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+}
 
 
 

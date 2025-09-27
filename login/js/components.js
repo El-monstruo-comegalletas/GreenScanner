@@ -1,5 +1,5 @@
 /**
- * Componentes reutilizables para EcoRecycle
+ * Componentes reutilizables para GreenScanner
  * Maneja elementos de UI como mascota, inputs, botones, etc.
  */
 

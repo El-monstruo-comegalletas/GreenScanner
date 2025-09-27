@@ -3,6 +3,7 @@ const isEmu = location.hostname === "10.0.2.2";
 //const API_BASE = isEmu ? "http://10.0.2.2:8000" : "http://192.168.20.23:8000";
 //const API_BASE = "http://127.0.0.1:8000";
 const API_BASE = "https://gs.kwb.com.co";
+// const API_BASE = "http://localhost:8000";
 
 
 

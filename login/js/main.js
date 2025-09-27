@@ -206,7 +206,7 @@ class EcoRecycleApp {
     showWelcomeMessage() {
         setTimeout(() => {
             if (ecoCharacter) {
-                ecoCharacter.updateExpression('happy', '¡Hola! 🌱 Bienvenido a EcoRecycle');
+                ecoCharacter.updateExpression('happy', '¡Hola! 🌱 Bienvenido a GreenScanner');
             }
         }, 500);
     }
@@ -560,9 +560,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hacer disponible globalmente para debugging
         window.ecoRecycleApp = ecoRecycleApp;
         
-        console.log('🌱 EcoRecycle App iniciada correctamente');
+        console.log('🌱 GreenScanner App iniciada correctamente');
     } catch (error) {
-        console.error('Error al inicializar EcoRecycle:', error);
+        console.error('Error al inicializar GreenScanner:', error);
         
         // Mostrar error de fallback si falla la inicialización
         document.body.innerHTML = `
