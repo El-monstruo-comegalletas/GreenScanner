@@ -1,4 +1,4 @@
-# 🌱 EcoRecycle - App de Reciclaje con IA
+# 🌱 GreenScanner - App de Reciclaje con IA
 
 Una aplicación web mobile-first para clasificación inteligente de residuos reciclables con integración de IA y sistema de recompensas.
 
