@@ -1,3 +1,13 @@
+
+#navbar {
+  background-color: #21C45D;
+  color: #fff;
+  padding: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(24, 24, 24, 0.1);
+}
+
+
+
 /* =======================================================
    Base & Utilities
    ======================================================= */
@@ -18,19 +28,11 @@ body {
 .min-h-screen { min-height: 100vh; }
 
 /* Fondo general con degradado */
-.bg-gray-50 {
-  background: linear-gradient(145deg, #15da5d 0%, #0ea5e9 100%);
-}
+
 
 /* =======================================================
    Header
    ======================================================= */
-header {
-  background: linear-gradient(90deg, #10b981, #059669);
-  color: #fff;
-  padding: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
 .flex { display: flex; }
 .flex-col { flex-direction: column; }
 .items-center { align-items: center; }
@@ -896,7 +898,8 @@ button:focus {
    ======================================================= */
 
 /* Ensure app container is mobile-friendly */
-#app {
+.app {
+  background-color: green;
   width: 100%;
   max-width: 28rem;
   margin: 0 auto;
