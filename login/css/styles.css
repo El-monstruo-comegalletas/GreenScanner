@@ -73,9 +73,9 @@ body {
 }
 
 .character-body {
-    width: 5rem;
-    height: 5rem;
-    background: linear-gradient(135deg, var(--primary-green), #059669);
+    width: 7rem;
+    height: 7rem;
+    background: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -150,7 +150,7 @@ body {
    FORMULARIOS
    ====================== */
 .auth-form {
-    background-color: var(--white);
+    
     border-radius: var(--border-radius-lg);
     padding: 2rem;
     box-shadow: var(--shadow-xl);
@@ -158,19 +158,20 @@ body {
 }
 
 .form-header {
+    
     text-align: center;
     margin-bottom: 2rem;
 }
 
 .form-header h1 {
+    color: black;
     font-size: 1.875rem;
     font-weight: 700;
-    color: var(--text-dark);
     margin-bottom: 0.5rem;
 }
 
 .form-header p {
-    color: var(--text-medium);
+    color: rgb(78, 78, 78);
     font-size: 1rem;
 }
 
